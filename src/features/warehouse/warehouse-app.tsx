@@ -243,9 +243,14 @@ function PartCardDialog({material,onClose}:{material:Material;onClose:()=>void})
  function doPrint(){
   const el=document.getElementById('part-card-print');
   if(!el)return;
+  // Clone node so we can replace <canvas> with <img> (canvas doesn't serialize via innerHTML)
+  const clone=el.cloneNode(true) as HTMLElement;
+  const canvases=el.querySelectorAll('canvas');
+  const imgs=clone.querySelectorAll('canvas');
+  canvases.forEach((c,i)=>{const img=document.createElement('img');img.src=c.toDataURL();img.width=c.width;img.height=c.height;img.style.cssText=c.style.cssText||'display:block';imgs[i]?.parentNode?.replaceChild(img,imgs[i]);});
   const w=window.open('','_blank','width=400,height=600');
   if(!w)return;
-  w.document.write(`<!DOCTYPE html><html><head><title>Part Card - ${material.part}</title><style>*{margin:0;padding:0;box-sizing:border-box;}body{padding:20px;display:flex;justify-content:center;}@media print{body{padding:0;}}</style></head><body>${el.innerHTML}<script>window.onload=()=>{window.print();}<\/script></body></html>`);
+  w.document.write(`<!DOCTYPE html><html><head><title>Part Card - ${material.part}</title><style>*{margin:0;padding:0;box-sizing:border-box;}body{padding:20px;display:flex;justify-content:center;}@media print{body{padding:0;}}</style></head><body>${clone.innerHTML}<script>window.onload=()=>{window.print();}<\/script></body></html>`);
   w.document.close();
  }
  return <>
