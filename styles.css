@@ -108,8 +108,13 @@ body{font-family:Inter,"Segoe UI",Arial,sans-serif;background:#f3f5f8;color:#172
 .activity-chart{height:226px;position:relative}.activity-chart svg{width:100%;height:100%;overflow:visible}.activity-chart .chart-label{fill:#748198;font:11px Inter,"Segoe UI",sans-serif}.clickable-row{cursor:pointer}.clickable-row:hover{background:#eef4ff!important}.scan-panel-head{display:flex;justify-content:space-between;gap:10px;align-items:center}.scan-panel-head .tabs{margin-bottom:14px}.scan-stage-actions{display:flex;justify-content:center;gap:8px;flex-wrap:wrap}.scan-help{font-size:11px!important}.scan-success{padding:9px 11px;margin-top:9px;border-radius:7px;background:#e9f8ef;color:#147b47;font-size:12px;font-weight:650}.scanner-input{font-size:16px;padding:14px}
 @media(min-width:640px) and (max-width:1023px){.sidebar{display:flex;width:72px;padding:22px 8px}.mobile-nav{display:none}.brand{font-size:0;text-align:center;padding:0 0 22px}.brand:before{content:"M";font-size:18px}.brand small{display:none}.nav button{justify-content:center;padding:12px 0;font-size:0}.nav .ico{font-size:18px}.logout{justify-content:center;font-size:0}.logout:before{content:"⇥";font-size:18px}.profile{justify-content:center;padding-left:0;padding-right:0}.profile>div:last-child{display:none}.main{margin-left:72px;padding-left:24px;padding-right:24px}}
 @media(max-width:639px){
- .sidebar{display:flex;width:260px;transform:translateX(-105%);transition:transform .22s;box-shadow:10px 0 40px #051b3d33}
+ body{overflow-x:hidden}
+ .shell{min-height:100svh;overflow-x:clip}
+ .sidebar{display:flex;width:min(280px,calc(100vw - 48px));padding:calc(18px + env(safe-area-inset-top)) 14px calc(18px + env(safe-area-inset-bottom));transform:translateX(-105%);transition:transform .22s ease;box-shadow:10px 0 40px #051b3d33;z-index:7;visibility:hidden}
  .sidebar.open{transform:translateX(0)}
+ .sidebar.open{visibility:visible}
+ .mobile-menu-backdrop{position:fixed;inset:0;z-index:6;border:0;padding:0;background:#10182880;backdrop-filter:blur(1px);-webkit-backdrop-filter:blur(1px);animation:menu-backdrop-in .18s ease-out}
+ @keyframes menu-backdrop-in{from{opacity:0}to{opacity:1}}
  .mobile-menu-head{display:flex;justify-content:flex-end}
  .hamb{display:block;border:1px solid var(--line);background:white;border-radius:8px;padding:8px 11px;margin-right:10px}
  .main{margin:0;max-width:none;padding:20px 15px 86px}

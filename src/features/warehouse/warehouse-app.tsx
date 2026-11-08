@@ -19,6 +19,7 @@ export default function WarehouseApp(){
   const [user,setUser]=useState('');
   const [ready,setReady]=useState(false);
   const [page,setPage]=useState<Page>('dashboard');
+  const [menuOpen,setMenuOpen]=useState(false);
   const [search,setSearch]=useState('');
   const [code,setCode]=useState('');
   const [dialog,setDialog]=useState<Dialog>(null);
@@ -76,7 +77,7 @@ export default function WarehouseApp(){
   const active=useMemo(()=>materials.filter(m=>m.active),[materials]);
   const isAdmin=user==='admin@mmp.local';
   const notify=(s:string)=>{setToast(s);window.setTimeout(()=>setToast(''),2600)};
-  const go=(p:Page)=>{setPage(p);setSearch('')};
+  const go=(p:Page)=>{setPage(p);setSearch('');setMenuOpen(false)};
 
   // ── addLog ───────────────────────────────────────────────────
   const addLog=useCallback(async(m:Material,type:Tx['type'],qty:number,before:number,after:number,note?:string)=>{
@@ -193,8 +194,9 @@ export default function WarehouseApp(){
   const subs:Record<Page,string>={dashboard:'Ringkasan data material dan aktivitas gudang',material:'Kelola data material gudang',scan:'Pindai kode material untuk input atau pengecekan stok',logs:'Riwayat transaksi dan perubahan data material',detail:'Material  ›  Detail'};
   const selected=allMaterials.find(m=>m.part.toLowerCase()===code.trim().toLowerCase()&&m.active);
 
-  return <div className="shell"><aside className="sidebar"><div className="mobile-menu-head"><button className="close" onClick={()=>document.querySelector('.sidebar')?.classList.remove('open')}>×</button></div><div className="brand">MMP<small>Warehouse Material</small></div><nav className="nav">{([['dashboard','▦'],['material','▤'],['scan','⌗'],['logs','☷']] as [Page,string][]).map(([p,i])=><button key={p} onClick={()=>go(p)} className={page===p||(page==='detail'&&p==='material')?'active':''}><span className="ico">{i}</span>{titles[p]}</button>)}</nav><div className="aside-bottom"><button className="logout" onClick={()=>setDialog({kind:'logout'})}>⇥　Logout</button><div className="profile"><div className="avatar">{isAdmin?'AD':'OP'}</div><div><b>{isAdmin?'Administrator':'Operator'}</b><small>{user}</small></div></div></div></aside>
-  <main className="main"><header className="topline"><button className="hamb" onClick={()=>document.querySelector('.sidebar')?.classList.add('open')}>☰</button><div className="heading"><h1>{titles[page]}</h1><p>{subs[page]}</p></div><div className="date">{new Date().toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric'})}</div></header>
+  return <div className="shell"><aside id="mobile-sidebar" className={`sidebar${menuOpen?' open':''}`}><div className="mobile-menu-head"><button className="close" aria-label="Tutup menu" onClick={()=>setMenuOpen(false)}>×</button></div><div className="brand">MMP<small>Warehouse Material</small></div><nav className="nav">{([['dashboard','▦'],['material','▤'],['scan','⌗'],['logs','☷']] as [Page,string][]).map(([p,i])=><button key={p} onClick={()=>go(p)} className={page===p||(page==='detail'&&p==='material')?'active':''}><span className="ico">{i}</span>{titles[p]}</button>)}</nav><div className="aside-bottom"><button className="logout" onClick={()=>{setMenuOpen(false);setDialog({kind:'logout'})}}>⇥　Logout</button><div className="profile"><div className="avatar">{isAdmin?'AD':'OP'}</div><div><b>{isAdmin?'Administrator':'Operator'}</b><small>{user}</small></div></div></div></aside>
+  {menuOpen&&<button className="mobile-menu-backdrop" aria-label="Tutup menu" onClick={()=>setMenuOpen(false)}/>}
+  <main className="main"><header className="topline"><button className="hamb" aria-label="Buka menu" aria-expanded={menuOpen} aria-controls="mobile-sidebar" onClick={()=>setMenuOpen(true)}>☰</button><div className="heading"><h1>{titles[page]}</h1><p>{subs[page]}</p></div><div className="date">{new Date().toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric'})}</div></header>
   {page==='dashboard'&&<Dashboard materials={active} logs={logs} navigate={go}/>}
   {page==='material'&&<Materials items={active.filter(m=>(m.part+' '+m.name).toLowerCase().includes(search.toLowerCase()))} search={search} setSearch={setSearch} isAdmin={isAdmin} onAdd={()=>setDialog({kind:'add'})} onEdit={m=>setDialog({kind:'edit',item:m})} onDelete={m=>setDialog({kind:'deactivate',item:m})} onDetail={m=>{setDetailId(m.id);setPage('detail')}} onReset={()=>setDialog({kind:'reset'})} onExcel={()=>exportExcel(active,logs)} onQr={m=>setDialog({kind:'qrcode',item:m})} />}
   {page==='scan'&&<Scan items={allMaterials} code={code} setCode={setCode} selected={selected} isAdmin={isAdmin} onAdd={()=>setDialog({kind:'add'})} onHistory={()=>go('logs')} onLookup={lookup} onTransaction={(m,q,t)=>setDialog({kind:'transaction',item:m,qty:q,type:t})} />}
