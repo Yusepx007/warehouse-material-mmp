@@ -174,9 +174,19 @@ export default function WarehouseApp(){
 
   if(!ready)return <div className="loading-screen">Memuat Warehouse Material MMP…</div>;
   if(!user)return <Login onLogin={async(email,password)=>{
-    const{error}=await supabase.auth.signInWithPassword({email,password});
-    if(error)return error.message;
-    return null;
+    // Cek apakah URL Supabase valid (bukan placeholder)
+    const url=process.env.NEXT_PUBLIC_SUPABASE_URL||'https://qfjzkgofdgmywaarutvl.supabase.co';
+    if(url.includes('placeholder')){
+      return 'Konfigurasi server belum selesai. Hubungi administrator.';
+    }
+    try{
+      const{error}=await supabase.auth.signInWithPassword({email,password});
+      if(error)return error.message;
+      return null;
+    }catch(ex:unknown){
+      const msg=ex instanceof Error?ex.message:String(ex);
+      return 'Error: '+msg;
+    }
   }}/>;
 
   const titles:Record<Page,string>={dashboard:'Dashboard',material:'Data Material',scan:'Scan QR / Barcode',logs:'Log Aktivitas',detail:'Detail Material'};
@@ -210,16 +220,18 @@ function Login({onLogin}:{onLogin:(email:string,password:string)=>Promise<string
     try{
       const err=await onLogin(email,password);
       if(err){
-        if(err.toLowerCase().includes('fetch')||err.toLowerCase().includes('network')){
-          setError('Gagal terhubung ke server. Periksa koneksi internet kamu, lalu coba lagi.');
-        } else if(err.toLowerCase().includes('invalid')||err.toLowerCase().includes('credentials')){
+        // Tampilkan error asli agar mudah diagnosa
+        if(err.toLowerCase().includes('invalid login credentials')||err.toLowerCase().includes('invalid email or password')){
           setError('Email atau password salah. Periksa kembali.');
+        } else if(err.toLowerCase().includes('email not confirmed')){
+          setError('Email belum dikonfirmasi. Cek inbox atau hubungi admin untuk konfirmasi akun.');
         } else {
-          setError(err);
+          setError(err); // Tampilkan error asli dari Supabase
         }
       }
-    }catch(ex){
-      setError('Gagal terhubung ke server. Periksa koneksi internet kamu.');
+    }catch(ex:unknown){
+      const msg=ex instanceof Error?ex.message:String(ex);
+      setError('Exception: '+msg);
     }
     setBusy(false);
   }
