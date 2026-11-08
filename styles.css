@@ -123,6 +123,46 @@ body{font-family:Inter,"Segoe UI",Arial,sans-serif;background:#f3f5f8;color:#172
  .login-card{padding:28px 23px}
 }
 
+/* Keep narrow phone layouts readable without horizontal page overflow. */
+@media(max-width:639px){
+ .topline{gap:8px;align-items:flex-start}
+ .hamb{flex:0 0 auto}
+ .heading h1{font-size:19px;line-height:1.25}
+ .heading p{max-width:100%;overflow-wrap:anywhere}
+ .date{display:none}
+ .stats,.stats>* ,.grid-two,.grid-two>* ,.main>section{min-width:0;max-width:100%}
+ .stat{min-width:0}
+ .stat>div:last-child{min-width:0;overflow-wrap:anywhere}
+ .stat strong{font-size:clamp(16px,5vw,19px);overflow-wrap:anywhere}
+ .panel-head{gap:9px;align-items:flex-start;flex-wrap:wrap}
+ .panel-head>div:last-child{max-width:100%;flex-wrap:wrap}
+ .legend{flex-wrap:wrap;gap:8px}
+ .chart-tabs{max-width:100%;overflow-x:auto}
+ .chart-tab{white-space:nowrap;padding:5px 8px}
+ .table-wrap{width:calc(100% + 28px);max-width:calc(100% + 28px);overflow-x:auto;overscroll-behavior-x:contain;-webkit-overflow-scrolling:touch}
+ .toolbar{min-width:0}
+ .toolbar>.btn{min-width:0;white-space:normal;line-height:1.25}
+ .field>.toolbar{display:grid;grid-template-columns:minmax(0,1fr)}
+ .field>.toolbar>.btn{width:100%}
+ .log-filters label{display:grid;grid-template-columns:auto minmax(0,1fr);width:calc(50% - 6px);min-width:0;gap:6px}
+ .log-filters label input,.log-filters label select{width:100%;max-width:100%;min-width:0}
+ .detail-overview{grid-template-columns:minmax(0,1fr)!important;gap:16px!important}
+ .detail-overview>img,.detail-overview>div:first-child{justify-self:center;max-width:100%}
+ .detail-overview .detail-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+ .detail-item{min-width:0;overflow-wrap:anywhere}
+ .detail-item strong{overflow-wrap:anywhere}
+ .modal-actions{flex-wrap:wrap}
+ #toast{bottom:16px}
+}
+@media(max-width:380px){
+ .stats{gap:8px}
+ .stat{padding:10px 8px}
+ .stat-icon{width:30px;height:30px;font-size:15px}
+ .log-filters label{width:100%}
+ .detail-overview .detail-grid{grid-template-columns:minmax(0,1fr)}
+ .modal-actions>.btn{flex:1 1 100%}
+}
+
 /* Chart period tabs */
 .chart-tabs{display:flex;gap:4px;background:#f1f5f9;border-radius:8px;padding:3px;}
 .chart-tab{padding:4px 12px;border:none;border-radius:6px;font-size:12px;font-weight:500;cursor:pointer;background:transparent;color:#64748b;transition:all .15s;}

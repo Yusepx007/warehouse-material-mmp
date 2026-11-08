@@ -365,7 +365,7 @@ function Detail({item,logs,isAdmin,onBack,onEdit,onQr}:{item?:Material;logs:Tx[]
   if(!item)return <div className="card empty">Material tidak ditemukan<button className="btn" onClick={onBack}>Kembali</button></div>;
   return <section className="card panel">
    <div className="panel-head"><div><button className="link" onClick={onBack}>Material ‹ Detail</button><h2>Detail Material</h2></div><div style={{display:'flex',gap:'8px'}}><button className="btn" style={{background:'#7c3aed',color:'#fff'}} onClick={()=>onQr(item)}>⊞ Part Card</button>{isAdmin&&<button className="btn warning" onClick={()=>onEdit(item)}>✎ Edit</button>}</div></div>
-   <div style={{display:'grid',gridTemplateColumns:'auto 1fr',gap:'24px',alignItems:'start',marginBottom:'16px'}}>
+   <div className="detail-overview" style={{display:'grid',gridTemplateColumns:'auto 1fr',gap:'24px',alignItems:'start',marginBottom:'16px'}}>
     {item.image?<img src={item.image} alt={item.name} style={{width:'160px',height:'160px',objectFit:'cover',borderRadius:'12px',border:'2px solid #e2e8f0',flexShrink:0}}/>:<div style={{width:'160px',height:'160px',borderRadius:'12px',border:'2px dashed #e2e8f0',display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',color:'#cbd5e1',fontSize:'13px',gap:'8px',flexShrink:0}}><span style={{fontSize:'32px'}}>📷</span><span>Belum ada foto</span></div>}
     <div className="detail-grid" style={{margin:0}}>{[['Part Number',item.part],['Nama Material',item.name],['Quantity',fmt(item.qty)+' unit'],['Stok Minimum',fmt(item.min)+' unit'],['Last Update',time(item.updated)],['Deskripsi',item.description||'—']].map(([a,b])=><div className="detail-item" key={a}><small>{a}</small><strong>{b}</strong></div>)}</div>
    </div>
