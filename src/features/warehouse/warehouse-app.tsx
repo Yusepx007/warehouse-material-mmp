@@ -204,20 +204,32 @@ export default function WarehouseApp(){
 
 // ── Login ────────────────────────────────────────────────────────
 function Login({onLogin}:{onLogin:(email:string,password:string)=>Promise<string|null>}){
-  const [email,setEmail]=useState('admin@mmp.local'),[password,setPassword]=useState(''),[showPw,setShowPw]=useState(false),[error,setError]=useState(''),[busy,setBusy]=useState(false);
+  const [email,setEmail]=useState(''),[password,setPassword]=useState(''),[showPw,setShowPw]=useState(false),[error,setError]=useState(''),[busy,setBusy]=useState(false);
   async function submit(e:FormEvent){
     e.preventDefault();setBusy(true);setError('');
-    const err=await onLogin(email,password);
-    if(err)setError(err);
+    try{
+      const err=await onLogin(email,password);
+      if(err){
+        if(err.toLowerCase().includes('fetch')||err.toLowerCase().includes('network')){
+          setError('Gagal terhubung ke server. Periksa koneksi internet kamu, lalu coba lagi.');
+        } else if(err.toLowerCase().includes('invalid')||err.toLowerCase().includes('credentials')){
+          setError('Email atau password salah. Periksa kembali.');
+        } else {
+          setError(err);
+        }
+      }
+    }catch(ex){
+      setError('Gagal terhubung ke server. Periksa koneksi internet kamu.');
+    }
     setBusy(false);
   }
   return <div className="login-page"><section className="login-side" aria-hidden="true"/>
-   <form className="login-card" onSubmit={submit}><div className="cube">⬡</div><h1>Warehouse Material MMP</h1><p>Sistem Manajemen Material Gudang</p><div className="field"><label className="form-label" htmlFor="login-email">Email</label><input id="login-email" type="email" required value={email} onChange={e=>setEmail(e.target.value)}/></div><div className="field"><label className="form-label" htmlFor="login-password">Password</label><div style={{position:'relative',display:'flex',alignItems:'center'}}><input id="login-password" type={showPw?'text':'password'} required value={password} onChange={e=>setPassword(e.target.value)} style={{paddingRight:'48px',width:'100%',boxSizing:'border-box'}}/><button type="button" className="pw-toggle" aria-label={showPw?'Sembunyikan password':'Tampilkan password'} onClick={()=>setShowPw(v=>!v)} style={{color:showPw?'#1769f6':'#94a3b8'}}>
+   <form className="login-card" onSubmit={submit} autoComplete="on"><div className="cube">⬡</div><h1>Warehouse Material MMP</h1><p>Sistem Manajemen Material Gudang</p><div className="field"><label className="form-label" htmlFor="login-email">Email</label><input id="login-email" name="email" type="email" autoComplete="email" required value={email} onChange={e=>setEmail(e.target.value)} placeholder="contoh@email.com"/></div><div className="field"><label className="form-label" htmlFor="login-password">Password</label><div style={{position:'relative'}}><input id="login-password" name="password" type={showPw?'text':'password'} autoComplete="current-password" required value={password} onChange={e=>setPassword(e.target.value)} style={{paddingRight:'48px',width:'100%',boxSizing:'border-box'}} placeholder="Masukkan password"/><button type="button" aria-label={showPw?'Sembunyikan password':'Tampilkan password'} onClick={()=>setShowPw(v=>!v)} style={{position:'absolute',right:'8px',top:'50%',transform:'translateY(-50%)',background:'transparent',border:'none',cursor:'pointer',padding:'6px',lineHeight:0,color:showPw?'#1769f6':'#94a3b8',display:'flex',alignItems:'center',justifyContent:'center',borderRadius:'4px'}}>
 {showPw
   ?<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
   :<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
 }
-</button></div></div>{error&&<div className="error">{error}</div>}<button className="btn primary" disabled={busy}>{busy?'Masuk…':'Login'}</button><div className="demo-access"><b>Akun demo</b><span>Admin: admin@mmp.local</span><span>Operator: operator@mmp.local</span></div><div className="login-foot">© 2026 MMP Warehouse. All rights reserved.</div></form>
+</button></div></div>{error&&<div className="error">{error}</div>}<button className="btn primary" disabled={busy}>{busy?'Masuk…':'Login'}</button><div className="demo-access"><b>Akun demo</b><button type="button" className="demo-btn" onClick={()=>{setEmail('admin@mmp.local')}}>Admin: admin@mmp.local</button><button type="button" className="demo-btn" onClick={()=>{setEmail('operator@mmp.local')}}>Operator: operator@mmp.local</button></div><div className="login-foot">© 2026 MMP Warehouse. All rights reserved.</div></form>
   </div>
 }
 
