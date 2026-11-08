@@ -1,6 +1,7 @@
 'use client';
 import { FormEvent, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { supabase } from '@/lib/supabase';
+import jsQR from 'jsqr';
 
 type Material={id:string;part:string;name:string;qty:number;min:number;description:string;active:boolean;updated:string;image?:string};
 type Tx={id:string;materialId:string;part:string;name:string;type:'in'|'out'|'adjustment';qty:number;before:number;after:number;user:string;time:string;note?:string};
@@ -203,7 +204,7 @@ export default function WarehouseApp(){
 
 // ── Login ────────────────────────────────────────────────────────
 function Login({onLogin}:{onLogin:(email:string,password:string)=>Promise<string|null>}){
-  const [email,setEmail]=useState('admin@mmp.local'),[password,setPassword]=useState(''),[error,setError]=useState(''),[busy,setBusy]=useState(false);
+  const [email,setEmail]=useState('admin@mmp.local'),[password,setPassword]=useState(''),[showPw,setShowPw]=useState(false),[error,setError]=useState(''),[busy,setBusy]=useState(false);
   async function submit(e:FormEvent){
     e.preventDefault();setBusy(true);setError('');
     const err=await onLogin(email,password);
@@ -211,7 +212,7 @@ function Login({onLogin}:{onLogin:(email:string,password:string)=>Promise<string
     setBusy(false);
   }
   return <div className="login-page"><section className="login-side" aria-hidden="true"/>
-   <form className="login-card" onSubmit={submit}><div className="cube">⬡</div><h1>Warehouse Material MMP</h1><p>Sistem Manajemen Material Gudang</p><div className="field"><label className="form-label" htmlFor="login-email">Email</label><input id="login-email" type="email" required value={email} onChange={e=>setEmail(e.target.value)}/></div><div className="field"><label className="form-label" htmlFor="login-password">Password</label><input id="login-password" type="password" required value={password} onChange={e=>setPassword(e.target.value)}/></div>{error&&<div className="error">{error}</div>}<button className="btn primary" disabled={busy}>{busy?'Masuk…':'Login'}</button><div className="demo-access"><b>Akun demo</b><span>Admin: admin@mmp.local</span><span>Operator: operator@mmp.local</span></div><div className="login-foot">© 2026 MMP Warehouse. All rights reserved.</div></form>
+   <form className="login-card" onSubmit={submit}><div className="cube">⬡</div><h1>Warehouse Material MMP</h1><p>Sistem Manajemen Material Gudang</p><div className="field"><label className="form-label" htmlFor="login-email">Email</label><input id="login-email" type="email" required value={email} onChange={e=>setEmail(e.target.value)}/></div><div className="field"><label className="form-label" htmlFor="login-password">Password</label><div style={{position:'relative'}}><input id="login-password" type={showPw?'text':'password'} required value={password} onChange={e=>setPassword(e.target.value)} style={{paddingRight:'44px',width:'100%'}}/><button type="button" onClick={()=>setShowPw(v=>!v)} style={{position:'absolute',right:'10px',top:'50%',transform:'translateY(-50%)',background:'none',border:'none',cursor:'pointer',fontSize:'18px',color:'#64748b',padding:'4px',lineHeight:1}} title={showPw?'Sembunyikan password':'Tampilkan password'}>{showPw?'🙈':'👁️'}</button></div></div>{error&&<div className="error">{error}</div>}<button className="btn primary" disabled={busy}>{busy?'Masuk…':'Login'}</button><div className="demo-access"><b>Akun demo</b><span>Admin: admin@mmp.local</span><span>Operator: operator@mmp.local</span></div><div className="login-foot">© 2026 MMP Warehouse. All rights reserved.</div></form>
   </div>
 }
 
@@ -247,14 +248,42 @@ function Materials({items,search,setSearch,isAdmin,onAdd,onEdit,onDelete,onDetai
 // ── Scan ─────────────────────────────────────────────────────────
 function Scan({items,code,setCode,selected,isAdmin,onAdd,onHistory,onLookup,onTransaction}:{items:Material[];code:string;setCode:(s:string)=>void;selected?:Material;isAdmin:boolean;onAdd:()=>void;onHistory:()=>void;onLookup:(s:string)=>void;onTransaction:(m:Material,q:number,t:'in'|'out')=>void}){
   const [mode,setMode]=useState<'camera'|'hid'>('camera'),[type,setType]=useState<'in'|'out'>('in'),[error,setError]=useState(''),[live,setLive]=useState(false),[facing,setFacing]=useState<'environment'|'user'>('environment'),[lastScanned,setLastScanned]=useState('');
-  const video=useRef<HTMLVideoElement>(null),stream=useRef<MediaStream|null>(null),hid=useRef<HTMLInputElement>(null),loop=useRef(false),lastHit=useRef({code:'',at:0});
+  const video=useRef<HTMLVideoElement>(null),canvas=useRef<HTMLCanvasElement>(null),stream=useRef<MediaStream|null>(null),hid=useRef<HTMLInputElement>(null),loop=useRef(false),lastHit=useRef({code:'',at:0});
   useEffect(()=>{if(mode==='hid')hid.current?.focus()},[mode]);
   useEffect(()=>()=>{loop.current=false;stream.current?.getTracks().forEach(t=>t.stop())},[]);
-  async function start(camera=facing){setError('');const Detector=(window as Window&{BarcodeDetector?:new(o?:{formats:string[]})=>{detect:(v:HTMLVideoElement)=>Promise<{rawValue:string}[]>}}).BarcodeDetector;if(!Detector){setError('Browser ini belum mendukung pemindai kamera bawaan. Gunakan Chrome/Edge, scanner fisik, atau input manual.');return}try{stream.current=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:camera}},audio:false});if(video.current){video.current.srcObject=stream.current;await video.current.play()}setLive(true);loop.current=true;const detector=new Detector({formats:['qr_code','code_128','ean_13','ean_8']});const frame=async()=>{if(!loop.current||!video.current)return;try{const hits=await detector.detect(video.current);if(hits.length){const value=hits[0].rawValue.trim(),now=Date.now();if(value&&(value!==lastHit.current.code||now-lastHit.current.at>2000)){onLookup(value);setLastScanned(value);lastHit.current={code:value,at:now}}}}catch{}if(loop.current)requestAnimationFrame(frame)};requestAnimationFrame(frame)}catch(e){setError(e instanceof Error&&e.name==='NotAllowedError'?'Izin kamera ditolak. Izinkan kamera di browser.':'Kamera tidak dapat dibuka. Coba scanner fisik atau input manual.');stream.current?.getTracks().forEach(t=>t.stop());setLive(false)}}
+  async function start(camera=facing){
+    setError('');
+    try{
+      stream.current=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:camera},width:{ideal:1280},height:{ideal:720}},audio:false});
+      if(video.current){video.current.srcObject=stream.current;await video.current.play();}
+      setLive(true);loop.current=true;
+      const tick=()=>{
+        if(!loop.current||!video.current||!canvas.current)return;
+        const v=video.current,c=canvas.current,ctx=c.getContext('2d');
+        if(v.readyState===v.HAVE_ENOUGH_DATA&&ctx){
+          c.width=v.videoWidth;c.height=v.videoHeight;
+          ctx.drawImage(v,0,0,c.width,c.height);
+          const img=ctx.getImageData(0,0,c.width,c.height);
+          const result=jsQR(img.data,img.width,img.height,{inversionAttempts:'dontInvert'});
+          if(result?.data){
+            const value=result.data.trim(),now=Date.now();
+            if(value&&(value!==lastHit.current.code||now-lastHit.current.at>2000)){
+              onLookup(value);setLastScanned(value);lastHit.current={code:value,at:now};
+            }
+          }
+        }
+        if(loop.current)requestAnimationFrame(tick);
+      };
+      requestAnimationFrame(tick);
+    }catch(e){
+      setError(e instanceof Error&&e.name==='NotAllowedError'?'Izin kamera ditolak. Izinkan kamera di browser.':'Kamera tidak dapat dibuka. Coba scanner fisik atau input manual.');
+      stream.current?.getTracks().forEach(t=>t.stop());setLive(false);
+    }
+  }
   function switchCamera(){const next=facing==='environment'?'user':'environment';loop.current=false;stream.current?.getTracks().forEach(t=>t.stop());setLive(false);setFacing(next);void start(next)}
   const inactive=items.some(m=>m.part.trim().toLowerCase()===code.trim().toLowerCase()&&!m.active);
   return <section className="scan-layout"><div className="card panel"><div className="scan-panel-head"><div className="tabs"><button className={'tab '+(mode==='camera'?'active':'')} onClick={()=>setMode('camera')}>◉ Kamera</button><button className={'tab '+(mode==='hid'?'active':'')} onClick={()=>setMode('hid')}>⌗ Scanner Fisik (Bluetooth)</button></div><button className="btn" onClick={onHistory}>Riwayat Scan</button></div>
-   {mode==='camera'?<><div className="scan-stage"><video ref={video} playsInline muted style={{display:live?'block':'none',width:'100%',height:'100%',objectFit:'cover'}}/><div className="scan-stage-inner"><div className="scan-symbol">▣</div><p>{live?'Arahkan kamera ke QR Code / Barcode':'Mode kamera siap'}</p><div className="scan-stage-actions"><button className="btn" onClick={()=>live?switchCamera():void start()}>{live?'Ganti Kamera':'Aktifkan Kamera'}</button>{live&&<button className="btn" onClick={()=>{loop.current=false;stream.current?.getTracks().forEach(t=>t.stop());setLive(false)}}>Matikan Kamera</button>}</div><p className="scan-help">Perlu izin kamera. Di perangkat mobile gunakan HTTPS.</p></div></div>{error&&<div className="notice camera-notice">{error}</div>}{lastScanned&&<div className="scan-success">✓ Kode terbaca: {lastScanned}</div>}</>:<><div className="notice">Scanner fisik mengirim kode seperti keyboard. Akhiri scan dengan Enter atau Tab.</div><label className="form-label" htmlFor="hid">Siap menerima scan</label><input ref={hid} id="hid" className="scanner-input" placeholder="Scan barcode di sini…" onKeyDown={e=>{if(e.key==='Enter'||e.key==='Tab'){e.preventDefault();const value=e.currentTarget.value.trim();if(value){onLookup(value);setLastScanned(value)}e.currentTarget.value='';e.currentTarget.focus()}}}/>{lastScanned&&<div className="scan-success">✓ Kode diterima: {lastScanned}</div>}<button className="btn" onClick={()=>hid.current?.focus()}>Fokus ulang</button></>}
+   {mode==='camera'?<><div className="scan-stage"><video ref={video} playsInline muted style={{display:live?'block':'none',width:'100%',height:'100%',objectFit:'cover'}}/><canvas ref={canvas} style={{display:'none'}}/><div className="scan-stage-inner"><div className="scan-symbol">▣</div><p>{live?'Arahkan kamera ke QR Code':'Mode kamera siap'}</p><div className="scan-stage-actions"><button className="btn" onClick={()=>live?switchCamera():void start()}>{live?'Ganti Kamera':'Aktifkan Kamera'}</button>{live&&<button className="btn" onClick={()=>{loop.current=false;stream.current?.getTracks().forEach(t=>t.stop());setLive(false)}}>Matikan Kamera</button>}</div><p className="scan-help">Perlu izin kamera. Di perangkat mobile gunakan HTTPS.</p></div></div>{error&&<div className="notice camera-notice">{error}</div>}{lastScanned&&<div className="scan-success">✓ Kode terbaca: {lastScanned}</div>}</>:<><div className="notice">Scanner fisik mengirim kode seperti keyboard. Akhiri scan dengan Enter atau Tab.</div><label className="form-label" htmlFor="hid">Siap menerima scan</label><input ref={hid} id="hid" className="scanner-input" placeholder="Scan barcode di sini…" onKeyDown={e=>{if(e.key==='Enter'||e.key==='Tab'){e.preventDefault();const value=e.currentTarget.value.trim();if(value){onLookup(value);setLastScanned(value)}e.currentTarget.value='';e.currentTarget.focus()}}}/>{lastScanned&&<div className="scan-success">✓ Kode diterima: {lastScanned}</div>}<button className="btn" onClick={()=>hid.current?.focus()}>Fokus ulang</button></>}
    <div className="field"><label className="form-label" htmlFor="manual-part">Atau masukkan Part Number</label><div className="toolbar" style={{margin:0}}><input id="manual-part" value={code} onChange={e=>setCode(e.target.value)} onKeyDown={e=>e.key==='Enter'&&onLookup(code)} placeholder="Contoh: 43155-KYZ-9000-M"/><button className="btn primary" onClick={()=>onLookup(code)}>Cari Material</button></div></div>
   </div><div className="card result-card"><h3>Hasil Scan</h3><div className="line"/>{code?selected?<><div className="result-code">{selected.part}</div><div>{selected.name}</div><div className="line"/><span className="hint">Stok saat ini</span><div className="stock-big">{fmt(selected.qty)} <small>unit</small></div><div className="field"><label className="form-label" htmlFor="scan-process">Pilih Proses</label><select id="scan-process" value={type} onChange={e=>setType(e.target.value as 'in'|'out')}><option value="in">Material Masuk</option><option value="out">Material Keluar</option></select></div><div className="field"><label className="form-label" htmlFor="scanQty">Quantity</label><input id="scanQty" type="number" min="1" max="100000" defaultValue="1"/></div><button className="btn primary full-width" onClick={()=>{const q=Number((document.querySelector('#scanQty') as HTMLInputElement)?.value);onTransaction(selected,q,type)}}>Lanjut ke Konfirmasi</button></>:<div className="error">{inactive?`Material ${code} nonaktif. Transaksi tidak dapat dibuat.`:`Kode '${code}' tidak terdaftar.`}{isAdmin&&!inactive&&<button className="btn" onClick={onAdd}>Tambah Material</button>}</div>:<div className="empty">⌗<strong>Belum ada hasil scan</strong>Pindai kode atau masukkan Part Number.</div>}</div></section>
 }

@@ -13,6 +13,7 @@
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.45.0",
+    "jsqr": "^1.4.0",
     "next": "latest",
     "qrcode": "^1.5.4",
     "react": "latest",
