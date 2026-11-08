@@ -8,3 +8,4 @@ dist/
 tsconfig.tsbuildinfo
 package-lock.json
 *.bat
+pnpm-lock.yaml
