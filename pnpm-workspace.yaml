@@ -1,0 +1,3 @@
+nodeLinker: hoisted
+storeDir: .pnpm-store
+verifyDepsBeforeRun: false
