@@ -33,25 +33,14 @@ create table if not exists public.transactions (
 alter table public.materials enable row level security;
 alter table public.transactions enable row level security;
 
-create policy "Authenticated can read materials"
+-- Closed by default. supabase-security-hardening.sql installs role-aware policies.
+create policy "Warehouse access is closed until hardening"
   on public.materials for select
-  using (auth.role() = 'authenticated');
+  using (false);
 
-create policy "Authenticated can insert materials"
-  on public.materials for insert
-  with check (auth.role() = 'authenticated');
-
-create policy "Authenticated can update materials"
-  on public.materials for update
-  using (auth.role() = 'authenticated');
-
-create policy "Authenticated can read transactions"
+create policy "Warehouse transaction access is closed until hardening"
   on public.transactions for select
-  using (auth.role() = 'authenticated');
-
-create policy "Authenticated can insert transactions"
-  on public.transactions for insert
-  with check (auth.role() = 'authenticated');
+  using (false);
 
 insert into public.materials (part, name, qty, min, description) values
   ('43155-KYZ-9000-M', 'Clamper A Brake Hose',    1000, 100, ''),
