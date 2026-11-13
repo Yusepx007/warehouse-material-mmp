@@ -81,12 +81,12 @@ ALTER TABLE delivery_orders ENABLE ROW LEVEL SECURITY;
 ALTER TABLE do_items ENABLE ROW LEVEL SECURITY;
 ALTER TABLE gps_locations ENABLE ROW LEVEL SECURITY;
 
--- Admin & operator bisa akses semua
-CREATE POLICY "admin_all_clients" ON clients FOR ALL USING (true) WITH CHECK (true);
-CREATE POLICY "admin_all_armada" ON armada FOR ALL USING (true) WITH CHECK (true);
-CREATE POLICY "admin_all_do" ON delivery_orders FOR ALL USING (true) WITH CHECK (true);
-CREATE POLICY "admin_all_do_items" ON do_items FOR ALL USING (true) WITH CHECK (true);
-CREATE POLICY "admin_all_gps" ON gps_locations FOR ALL USING (true) WITH CHECK (true);
+-- Closed until supabase-delivery-security.sql installs scoped policies.
+CREATE POLICY "clients_closed_until_hardening" ON clients FOR ALL USING (false) WITH CHECK (false);
+CREATE POLICY "armada_closed_until_hardening" ON armada FOR ALL USING (false) WITH CHECK (false);
+CREATE POLICY "do_closed_until_hardening" ON delivery_orders FOR ALL USING (false) WITH CHECK (false);
+CREATE POLICY "do_items_closed_until_hardening" ON do_items FOR ALL USING (false) WITH CHECK (false);
+CREATE POLICY "gps_closed_until_hardening" ON gps_locations FOR ALL USING (false) WITH CHECK (false);
 
 -- ============================================================
 -- REALTIME (untuk GPS live tracking)

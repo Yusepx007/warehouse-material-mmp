@@ -19,6 +19,8 @@ For a new database, run `supabase-schema.sql`, then run `supabase-security-harde
 
 After the warehouse schema and hardening migration are installed, run `supabase-delivery-schema.sql`, then `supabase-delivery-security.sql`. The latter closes the original broad delivery table policies and installs client scoped reads plus token checked driver functions. A delivery is marked received by the client portal or warehouse operator; the database deducts loaded quantities and writes transaction rows as one atomic operation at that point. Arrival at the client site does not reduce stock.
 
+If the delivery tables are already installed, rerun the latest `supabase-delivery-security.sql` after updating this file. It replaces the delivery policies and functions in place.
+
 Create a client login under Supabase Authentication, then copy that Auth user's UUID into the client's **ID User Auth** field in the warehouse Clients page. The client can then sign in at `/client` and view only its own delivery orders. Client Auth accounts must be created in Supabase Auth; this app intentionally does not expose a service role key in the browser.
 
 The driver link uses its token as a bearer credential. Share it only with the assigned driver. The driver can mark departure, arrival, and return; tracking requests GPS permission while the order is in transit. The driver page displays the destination company name and asks the driver to mark arrival before entering a site where phones are prohibited.

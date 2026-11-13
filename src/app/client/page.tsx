@@ -272,6 +272,7 @@ export default function ClientPortalPage() {
       .from('clients')
       .select('*')
       .eq('user_id', uid)
+      .eq('active', true)
       .single();
 
     if (error || !data) {
