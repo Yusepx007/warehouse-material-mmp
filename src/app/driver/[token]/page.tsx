@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
+import { Icon } from '@/components/icon';
 
 type DriverOrder = {
   id: string; do_number: string; status: string; notes: string | null;
@@ -76,10 +77,10 @@ export default function DriverPage() {
       <h2 style={{ margin: '16px 0 4px', fontSize: 20 }}>{order.client.name}</h2>
       <p style={styles.muted}>{order.client.address || 'Alamat belum dicantumkan'}</p>
       {order.armada && <p style={styles.muted}>{order.armada.name} · {order.armada.driver_name} · {order.armada.plate}</p>}
-      {order.status === 'loading' && <button disabled={busy} style={styles.primary} onClick={() => void setStatus('on_the_way')}>▶ Berangkat</button>}
-      {order.status === 'on_the_way' && <><p style={styles.notice}>GPS aktif saat perjalanan. Tekan tiba sebelum masuk area perusahaan.</p><p style={styles.muted}>{gpsMessage}</p><button disabled={busy} style={styles.primary} onClick={() => void setStatus('at_location')}>📍 Tiba di Lokasi</button></>}
-      {order.status === 'at_location' && <><div style={styles.arrived}>Armada sudah di lokasi PT {order.client.name}</div><p style={styles.notice}>Kalau tidak bisa masuk, keluar dari area terlebih dulu. Tandai dikembalikan setelah barang kembali ke gudang.</p><button disabled={busy} style={styles.danger} onClick={() => { if (window.confirm('Pastikan barang sudah kembali ke gudang. Tandai DO sebagai dikembalikan?')) void setStatus('returned'); }}>↩ Barang Sudah Kembali ke Gudang</button></>}
-      {order.status === 'delivered' && <div style={styles.arrived}>Penerimaan barang sudah dikonfirmasi.</div>}
+      {order.status === 'loading' && <button disabled={busy} style={styles.primary} onClick={() => void setStatus('on_the_way')}><Icon name="arrow-right" size={16} style={{display:"inline-block",verticalAlign:"middle",marginRight:8}}/>Berangkat</button>}
+      {order.status === 'on_the_way' && <><p style={styles.notice}>GPS aktif saat perjalanan. Tekan tiba sebelum masuk area perusahaan.</p><p style={styles.muted}>{gpsMessage}</p><button disabled={busy} style={styles.primary} onClick={() => void setStatus('at_location')}><Icon name="map-pin" size={16} style={{display:"inline-block",verticalAlign:"middle",marginRight:8}}/>Tiba di Lokasi</button></>}
+      {order.status === 'at_location' && <><div style={{...styles.arrived,display:"flex",alignItems:"center",gap:8}}><Icon name="map-pin"/>Armada sudah di lokasi PT {order.client.name}</div><p style={styles.notice}>Kalau tidak bisa masuk, keluar dari area terlebih dulu. Tandai dikembalikan setelah barang kembali ke gudang.</p><button disabled={busy} style={styles.danger} onClick={() => { if (window.confirm('Pastikan barang sudah kembali ke gudang. Tandai DO sebagai dikembalikan?')) void setStatus('returned'); }}><Icon name="undo" size={16} style={{display:"inline-block",verticalAlign:"middle",marginRight:8}}/>Barang Sudah Kembali ke Gudang</button></>}
+      {order.status === 'delivered' && <div style={{...styles.arrived,display:"flex",alignItems:"center",gap:8}}><Icon name="check"/>Penerimaan barang sudah dikonfirmasi.</div>}
       {order.status === 'returned' && <div style={styles.notice}>DO dikembalikan. Stok gudang belum dikurangi.</div>}
       {error && <p style={{ color: '#b91c1c' }}>{error}</p>}
     </section>

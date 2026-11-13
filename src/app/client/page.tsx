@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { supabase } from '@/lib/supabase';
+import { Icon, type IconName } from '@/components/icon';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -89,8 +90,17 @@ const TIMELINE_STEPS: { status: DOStatus; label: string }[] = [
   { status: 'loading', label: 'Loading' },
   { status: 'on_the_way', label: 'Dalam Perjalanan' },
   { status: 'at_location', label: 'Di Lokasi' },
-  { status: 'delivered', label: 'Diterima ✅' },
+  { status: 'delivered', label: 'Diterima' },
 ];
+
+const STATUS_ICON: Record<DOStatus, IconName> = {
+  draft: 'clipboard',
+  loading: 'barcode',
+  on_the_way: 'truck',
+  at_location: 'map-pin',
+  delivered: 'check',
+  returned: 'undo',
+};
 
 function fmt(dt: string | null) {
   if (!dt) return '-';
@@ -144,7 +154,7 @@ function LiveMap({ doId, initialGps }: { doId: string; initialGps: GpsLocation |
     if (markerRef.current) {
       markerRef.current.setLatLng([lat, lng]);
     } else {
-      markerRef.current = L.marker([lat, lng]).addTo(mapRef.current).bindPopup('🚛 Posisi Armada');
+      markerRef.current = L.marker([lat, lng]).addTo(mapRef.current).bindPopup('Posisi Armada');
     }
     mapRef.current.setView([lat, lng], 15);
   }, []);
@@ -392,7 +402,7 @@ export default function ClientPortalPage() {
       <div style={styles.loginBg}>
         <div style={styles.loginCard}>
           <div style={{ textAlign: 'center', marginBottom: 28 }}>
-            <div style={styles.logoBox}>📦</div>
+            <div style={styles.logoBox}><Icon name="package" size={36} /></div>
             <h1 style={styles.loginTitle}>Client Portal</h1>
             <p style={styles.loginSub}>Sistem Pelacakan Pengiriman MMP</p>
           </div>
@@ -457,15 +467,15 @@ export default function ClientPortalPage() {
         <div style={styles.content}>
           {/* Banner at_location */}
           {showBanner && (
-            <div style={styles.banner}>
-              🚚 Armada sudah di lokasi PT {selectedDO.clients?.name ?? clientData?.name ?? ''}
+            <div style={{ ...styles.banner, display: 'flex', alignItems: 'center', gap: 8 }}>
+              <Icon name="truck" />Armada sudah di lokasi PT {selectedDO.clients?.name ?? clientData?.name ?? ''}
             </div>
           )}
 
           {/* Confirm success */}
           {confirmSuccess && (
-            <div style={styles.bannerSuccess}>
-              ✅ Konfirmasi penerimaan berhasil dicatat!
+            <div style={{ ...styles.bannerSuccess, display: 'flex', alignItems: 'center', gap: 8 }}>
+              <Icon name="check" />Konfirmasi penerimaan berhasil dicatat!
             </div>
           )}
 
@@ -489,7 +499,7 @@ export default function ClientPortalPage() {
                       border: `1px solid ${STATUS_COLOR[selectedDO.status]}44`,
                     }}
                   >
-                    {STATUS_LABEL[selectedDO.status]}
+                    <><Icon name={STATUS_ICON[selectedDO.status]} size={14} style={{ display: 'inline-block', verticalAlign: 'middle', marginRight: 5 }} />{STATUS_LABEL[selectedDO.status]}</>
                   </span>
                 }
               />
@@ -548,7 +558,7 @@ export default function ClientPortalPage() {
           {/* Live Map */}
           {showMap && (
             <div style={styles.card}>
-              <h2 style={styles.cardTitle}>Live Tracking 🗺️</h2>
+              <h2 style={{ ...styles.cardTitle, display: 'flex', alignItems: 'center', gap: 7 }}><Icon name="map" size={17} />Live Tracking</h2>
               <p style={{ fontSize: 13, color: '#6b7280', marginBottom: 12 }}>
                 Posisi armada diperbarui otomatis setiap 10 detik
               </p>
@@ -565,7 +575,7 @@ export default function ClientPortalPage() {
                 disabled={confirmLoading || !allItemsLoaded}
                 style={{ ...styles.btnPrimary, background: allItemsLoaded ? '#16a34a' : '#94a3b8', marginBottom: 20, cursor: allItemsLoaded ? 'pointer' : 'not-allowed' }}
               >
-                {confirmLoading ? 'Memproses...' : '✅ Konfirmasi Barang Diterima'}
+                {confirmLoading ? 'Memproses...' : <><Icon name="check" size={17} style={{ display: 'inline-block', verticalAlign: 'middle', marginRight: 7 }} />Konfirmasi Barang Diterima</>}
               </button>
             </div>
           )}
@@ -593,7 +603,7 @@ export default function ClientPortalPage() {
         ) : (
           <>
             {/* Active DOs */}
-            <Section title={`🚚 Pengiriman Aktif (${activeDOs.length})`}>
+            <Section title={`Pengiriman Aktif (${activeDOs.length})`} icon="truck">
               {activeDOs.length === 0 ? (
                 <EmptyState text="Tidak ada pengiriman aktif" />
               ) : (
@@ -604,7 +614,7 @@ export default function ClientPortalPage() {
             </Section>
 
             {/* History DOs */}
-            <Section title={`📋 Riwayat Pengiriman (${historyDOs.length})`}>
+            <Section title={`Riwayat Pengiriman (${historyDOs.length})`} icon="history">
               {historyDOs.length === 0 ? (
                 <EmptyState text="Belum ada riwayat pengiriman" />
               ) : (
@@ -622,10 +632,10 @@ export default function ClientPortalPage() {
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
 
-function Section({ title, children }: { title: string; children: React.ReactNode }) {
+function Section({ title, children, icon }: { title: string; children: React.ReactNode; icon: IconName }) {
   return (
     <div style={{ marginBottom: 24 }}>
-      <h2 style={{ fontSize: 15, fontWeight: 700, color: '#1e3a5f', marginBottom: 12 }}>{title}</h2>
+      <h2 style={{ fontSize: 15, fontWeight: 700, color: '#1e3a5f', marginBottom: 12, display: 'flex', alignItems: 'center', gap: 7 }}><Icon name={icon} size={17} />{title}</h2>
       {children}
     </div>
   );
@@ -654,7 +664,7 @@ function DOCard({ do_, onClick }: { do_: DeliveryOrder; onClick: () => void }) {
             border: `1px solid ${STATUS_COLOR[do_.status]}44`,
           }}
         >
-          {STATUS_LABEL[do_.status]}
+          <><Icon name={STATUS_ICON[do_.status]} size={14} style={{ display: 'inline-block', verticalAlign: 'middle', marginRight: 5 }} />{STATUS_LABEL[do_.status]}</>
         </span>
       </div>
       <div style={{ fontSize: 13, color: '#6b7280', marginBottom: 4 }}>
@@ -699,7 +709,7 @@ function Timeline({ status }: { status: DOStatus }) {
         { status: 'loading' as DOStatus, label: 'Loading' },
         { status: 'on_the_way' as DOStatus, label: 'Dalam Perjalanan' },
         { status: 'at_location' as DOStatus, label: 'Di Lokasi' },
-        { status: 'returned' as DOStatus, label: 'Dikembalikan ❌' },
+        { status: 'returned' as DOStatus, label: 'Dikembalikan' },
       ]
     : TIMELINE_STEPS;
 
